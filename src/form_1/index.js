@@ -29,18 +29,6 @@ const schema = {
         fireFighterRank: {
             type: "string", 
             title: "What is your fire fighter rank?"
-        },
-        policeMan: {
-            type: "string", 
-            title: "Police man?"
-        }, 
-        policeManID: {
-            type: "number", 
-            title: "What is your police ID?"
-        }, 
-        policeManRank: {
-            type: "string", 
-            title: "What is your police man rank?"
         }
     }
 }
@@ -56,18 +44,11 @@ const uiSchema = {
         "ui:field": "StandardField"
     }, 
     fireFighterID: {
+        "ui:widget": "hidden",
         "ui:field": "StandardField"
     }, 
     fireFighterRank: {
-        "ui:field": "StandardField"
-    },
-    policeMan: {
-        "ui:field": "StandardField"
-    },
-    policeManID: {
-        "ui:field": "StandardField"
-    },
-    policeManRank: {
+        "ui:widget": "hidden",
         "ui:field": "StandardField"
     }
 }
@@ -80,43 +61,26 @@ const validationSchema = {
             "root_fireFighterRank"
         ], 
         result: false
-    }, 
-    "root_policeMan": {
-        expression: "root_policeMan === 'Yes'",
-        dependents: [
-            "root_policeManID", 
-            "root_policeManRank"
-        ], 
-        result: false
     }
 }   
-
-const Wrapper = (Comp) => (validationSchema, formData) => {
-    return class extends Component {
-        render() {
-            return <Comp {...this.props} validationSchema={validationSchema} newFormData={formData} />
-        }
-    }
-}
 
 class FormContainer extends Component {
     constructor(props) {
         super(props);
         this.validate = this.validate.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.onChange = this.onChange.bind(this);
         this.state = {
             validationSchema: validationSchema, 
-            formdata: null
+            uiSchema: uiSchema
         }
         this.fields = {
             StandardField: StandardField
         };
-        this.template = Wrapper(DefaultFieldTemplate)(this.state.validationSchema, this.state.formdata);
     }
 
     validate(formData, errors) {
         const { validationSchema } = this.state;
+        const { uiSchema } = this.state;
         let payload = {};
         for(const [field, valObj] of Object.entries(validationSchema)) {
             let temp = field.replace("root_", "");
@@ -125,33 +89,34 @@ class FormContainer extends Component {
             let payload = {};
             payload[field] = eval(lookup);
             valObj.result = evaluate(expression, payload);
+            if(valObj.result) {
+                valObj.dependents.map(d => {
+                    let d_temp = d.replace("root_", "");
+                    uiSchema[d_temp]["ui:widget"] = uiSchema[d_temp]["actualWidget"];
+                    formData[d_temp] = "Anything";
+                })
+            }
         }
         this.setState({
-            validationSchema: validationSchema
+            validationSchema,
+            uiSchema
         });
         return errors;
     }
 
-    onChange(form) {
-        console.log("onChange", form.formData);
-        this.state.formdata = form.formData;
-    }
-
     onSubmit({formData}) {
-        // this.state.formdata = formData;
         this.setState({
             formdata: formData
         })
-        console.log("onSubmit formData", formData);
-        this.template = Wrapper(DefaultFieldTemplate)(this.state.validationSchema, formData);
     }
 
     render() {
+        console.log(this.state.uiSchema);
         return (
             <Form schema={schema}
-                    uiSchema={uiSchema}
+                    uiSchema={this.state.uiSchema}
                     fields={this.fields}
-                    FieldTemplate={this.template}
+                    FieldTemplate={DefaultFieldTemplate}
                     liveValidate={false}
                     validate={this.validate}
                     onSubmit={this.onSubmit} />

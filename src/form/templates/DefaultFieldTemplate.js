@@ -5,17 +5,22 @@ class DefaultFieldTemplate extends Component {
         super(props);
     }
 
-    componentWillUpdate() {
-        console.log("DefaultFieldTemplate updating");
-    }
-
     render() {
-        const { id, label, help, required, description, errors, children, hidden, validationSchema } = this.props;
+        const { id, label, description, errors, children, validationSchema, newFormData } = this.props;
         let ownHidden = 'block';
         for(const [field, valObj] of Object.entries(validationSchema)) {
             valObj.dependents.filter(d => d === id)
                              .map(e => valObj.result ? ownHidden = 'block' : ownHidden = 'none');
         }
+        // let tempID;
+        // let childClone = React.cloneElement(children);
+        // if(id !== 'root') {
+        //     tempID = id.replace('root_', '');
+        //     if(newFormData && newFormData[tempID]) {
+        //         childClone = React.cloneElement(children, { newFormData: newFormData[tempID] });
+        //     }
+        // }
+        console.log(id, ownHidden);
 
         return (
             <div style={{ display: ownHidden }}>
@@ -23,8 +28,6 @@ class DefaultFieldTemplate extends Component {
                 {description}
                 {children}
                 {errors}
-                {help}
-                {hidden}
             </div>
         );
     }

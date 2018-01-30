@@ -11,17 +11,10 @@ class StandardField extends Component {
     }
 
     onChange(event) {
-        console.log("StandardField", event.target.value);
         this.props.onChange(event.target.value);
         this.setState({
             value: event.target.value
         });
-    }
-
-    componentWillMount() {
-        this.setState({
-            value: this.props.newFormData
-        })
     }
 
     render() {
@@ -30,10 +23,6 @@ class StandardField extends Component {
                 <input type="string" onChange={this.onChange} value={this.state.value} />
             </div>
         )
-    }
-
-    componentDidMount() {
-        this.onChange({ target: { value: this.props.newFormData } });
     }
 }
 
