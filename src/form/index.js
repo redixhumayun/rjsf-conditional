@@ -61,10 +61,20 @@ const conditionalSchema = {
     }
 }   
 
-const Wrapper = (Comp) => (args) => {
+const Wrapper = (Comp) => (args) => (fun) => {
     return class extends Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                fd: props.formData
+            }
+        }
+
         render() {
-            return <Comp {...this.props} {...args} />
+            return <Comp {...this.props} {...args} 
+                    callFun={(arg) => { 
+                        fun(args.formData)
+                     }} />
         }
     }
 }
@@ -73,11 +83,22 @@ class FormContainer extends Component {
     constructor(props) {
         super(props);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.formdata = {};
         this.conditionalSchema = conditionalSchema;
+        this.handleCallback = this.handleCallback.bind(this);
         this.fields = {
             StandardField: StandardField
         };
+        this.state = {
+            formdata: null, 
+            conditionalSchema: null
+        }
+    }
+
+    handleCallback(e) {
+        console.log(this.formdata);
+        this.forceUpdate();
     }
 
     conditionalValidation(formData) {
@@ -106,13 +127,15 @@ class FormContainer extends Component {
 
     render() {
         console.log("Rendering again");
+        console.log(this.formdata);
         return (
             <Form schema={schema}
                     uiSchema={uiSchema}
                     liveValidate={false}
                     FieldTemplate={Wrapper(DefaultFieldTemplate)({conditionalSchema: this.conditionalSchema, 
-                                                                    formData: this.formdata})}
+                                                                    formData: this.formdata})(this.handleCallback)}
                     formData={this.formdata}
+                    onChange={this.onChange}
                     onSubmit={this.onSubmit} />
         )
     }

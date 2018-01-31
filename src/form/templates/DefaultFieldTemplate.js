@@ -34,6 +34,11 @@ class DefaultFieldTemplate extends Component {
                     conObj.dependents.map(c => hiddenElements.push(c));
                 }
             }
+            if(hiddenElements.length === 0) {
+                setTimeout(() => {
+                    this.props.callFun("Re-render");
+                }, 1);
+            }
         }
         // for(const [field, valObj] of Object.entries(conditionalSchema)) {
         //     valObj.dependents.filter(d => d === id)
