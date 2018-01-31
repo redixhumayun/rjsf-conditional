@@ -31,7 +31,7 @@ const schema = {
             title: "What is your fire fighter rank?"
         }, 
         policeMan: {
-            type: "string", 
+            type: "boolean", 
             title: "Are you a policeman?"
         }, 
         policeManRank: {
@@ -43,25 +43,25 @@ const schema = {
 
 const uiSchema = {
     firstName: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }, 
     lastName: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }, 
     fireFighter: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }, 
     fireFighterID: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }, 
     fireFighterRank: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }, 
     policeMan: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }, 
     policeManRank: {
-        "ui:field": "StandardField"
+        "ui:field": "StandardField", 
     }
 }
 
@@ -74,7 +74,7 @@ const conditionalSchema = {
         ]
     }, 
     "policeMan": {
-        expression: "policeMan === 'Yes'",
+        expression: "policeMan === true",
         dependents: [
             "policeManRank", 
         ]
@@ -145,8 +145,8 @@ class FormContainer extends Component {
     render() {
         return (
             <Form schema={schema}
-                    uiSchema={uiSchema}
                     liveValidate={false}
+                    uiSchema={uiSchema}
                     FieldTemplate={Wrapper(DefaultFieldTemplate)({conditionalSchema: this.conditionalSchema, 
                                                                     formData: this.formdata})(this.handleCallback)}
                     formData={this.formdata}

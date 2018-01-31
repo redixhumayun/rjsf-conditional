@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import getWidget from '../widgets';
 
 
 class StandardField extends Component {
@@ -11,7 +12,6 @@ class StandardField extends Component {
     }
 
     onChange(event) {
-        console.log("StandardField", event.target.value);
         this.props.onChange(event.target.value);
         this.setState({
             value: event.target.value

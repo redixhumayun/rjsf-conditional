@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import * as evaluate from 'static-eval';
 import { parse } from 'esprima';
 
+import TextField from '../widgets/TextField';
+
 let hiddenElements = [];
 let firstRender = true; //to make sure it doesn't re-render the very first time
 
@@ -11,7 +13,8 @@ class DefaultFieldTemplate extends Component {
     }
 
     render() {
-        const { id, label, description, errors, children, conditionalSchema } = this.props;
+        console.log(this.props);
+        const { id, label, description, errors, children, conditionalSchema, schema } = this.props;
         let ownHidden = 'block';
         console.log("hiddenElements", hiddenElements);
         if(hiddenElements.length > 0) {
