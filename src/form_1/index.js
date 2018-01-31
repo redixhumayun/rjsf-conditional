@@ -53,7 +53,7 @@ const uiSchema = {
     }
 }
 
-const validationSchema = {
+const conditionalSchema = {
     "root_fireFighter": {
         expression: "root_fireFighter === 'Yes'", 
         dependents: [
@@ -70,7 +70,7 @@ class FormContainer extends Component {
         this.validate = this.validate.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.state = {
-            validationSchema: validationSchema, 
+            conditionalSchema: conditionalSchema, 
             uiSchema: uiSchema
         }
         this.fields = {
@@ -79,10 +79,10 @@ class FormContainer extends Component {
     }
 
     validate(formData, errors) {
-        const { validationSchema } = this.state;
+        const { conditionalSchema } = this.state;
         const { uiSchema } = this.state;
         let payload = {};
-        for(const [field, valObj] of Object.entries(validationSchema)) {
+        for(const [field, valObj] of Object.entries(conditionalSchema)) {
             let temp = field.replace("root_", "");
             let expression = parse(valObj.expression).body[0].expression;
             let lookup = 'formData.' + temp;
@@ -98,7 +98,7 @@ class FormContainer extends Component {
             }
         }
         this.setState({
-            validationSchema,
+            conditionalSchema,
             uiSchema
         });
         return errors;

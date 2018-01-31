@@ -6,9 +6,9 @@ class DefaultFieldTemplate extends Component {
     }
 
     render() {
-        const { id, label, description, errors, children, validationSchema, newFormData } = this.props;
+        const { id, label, description, errors, children, conditionalSchema, newFormData } = this.props;
         let ownHidden = 'block';
-        for(const [field, valObj] of Object.entries(validationSchema)) {
+        for(const [field, valObj] of Object.entries(conditionalSchema)) {
             valObj.dependents.filter(d => d === id)
                              .map(e => valObj.result ? ownHidden = 'block' : ownHidden = 'none');
         }

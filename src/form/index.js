@@ -51,7 +51,7 @@ const uiSchema = {
     }
 }
 
-const validationSchema = {
+const conditionalSchema = {
     "root_fireFighter": {
         expression: "root_fireFighter === 'Yes'", 
         dependents: [
@@ -59,21 +59,13 @@ const validationSchema = {
             "root_fireFighterRank"
         ], 
         result: false
-    }, 
-    "root_policeMan": {
-        expression: "root_policeMan === 'Yes'",
-        dependents: [
-            "root_policeManID", 
-            "root_policeManRank"
-        ], 
-        result: false
     }
 }   
 
-const Wrapper = (Comp) => (validationSchema, formData) => {
+const Wrapper = (Comp) => (conditionalSchema, formData) => {
     return class extends Component {
         render() {
-            return <Comp {...this.props} validationSchema={validationSchema} newFormData={formData} />
+            return <Comp {...this.props} conditionalSchema={conditionalSchema} newFormData={formData} />
         }
     }
 }
@@ -84,27 +76,36 @@ class FormContainer extends Component {
         this.validate = this.validate.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.formdata = {
-            firstName: 'Zaid', 
-            lastName: '', 
-            fireFighter: '', 
-            fireFighterID: '', 
-            fireFighterRank: '', 
-            random: ''
-        };
+        this.conditionalValidation = this.conditionalValidation.bind(this);
+        this.formdata = {};
+        // this.template = Wrapper(DefaultFieldTemplate)(conditionalSchema)
+        
         this.state = {
-            validationSchema: validationSchema,
-            template: Wrapper(DefaultFieldTemplate)(validationSchema)
+            conditionalSchema: conditionalSchema,
         }
         this.fields = {
             StandardField: StandardField
         };
     }
 
-    validate(formData, errors) {
-        const { validationSchema } = this.state;
+    conditionalValidation(formData) {
+        const { conditionalSchema } = this.state;
         let payload = {};
-        for(const [field, valObj] of Object.entries(validationSchema)) {
+        for(const [field, valObj] of Object.entries(conditionalSchema)) {
+            let temp = field.replace("root_", "");
+            let expression = parse(valObj.expression).body[0].expression;
+            let lookup = 'formData.' + temp;
+            let payload = {};
+            payload[field] = eval(lookup);
+            valObj.result = evaluate(expression, payload);
+        }
+        return conditionalSchema;
+    }
+
+    validate(formData, errors) {
+        const { conditionalSchema } = this.state;
+        let payload = {};
+        for(const [field, valObj] of Object.entries(conditionalSchema)) {
             let temp = field.replace("root_", "");
             let expression = parse(valObj.expression).body[0].expression;
             let lookup = 'formData.' + temp;
@@ -113,39 +114,27 @@ class FormContainer extends Component {
             valObj.result = evaluate(expression, payload);
         }
         this.setState({
-            validationSchema: validationSchema, 
-            template: Wrapper(DefaultFieldTemplate)(validationSchema)
+            conditionalSchema: conditionalSchema, 
         });
+        // this.template = Wrapper(DefaultFieldTemplate)(conditionalSchema);
         return errors;
     }
 
-    onChange(form) {
-        console.log("onChange", form.formData);
-        // this.formdata = form.formData;
+    onChange({formData}) {
+        let conditionalSchema = this.conditionalValidation(formData);
+        Object.keys(formData).map(key => {
+            this.formdata[key] = formData[key];
+        })
+        this.formdata['random'] = new Date().getTime();
+        this.setState({
+            conditionalSchema
+        });
+        // this.template = Wrapper(DefaultFieldTemplate)(conditionalSchema);
+        console.log(this.formdata);
     }
 
     onSubmit({formData}) {
         console.log("onSubmit", formData);
-        // this.formdata['fireFighter'] = formData['fireFighter'];
-        Object.keys(this.formdata).map(key => {
-            if(formData[key] != "") {
-                let value = formData[key];
-                let newValue = new String(value);
-                console.log(newValue);
-                this.formdata[key] = newValue.toString();
-            }
-        });
-        this.formdata['random'] = new Date().getTime();
-        // this.formdata = {...formData};
-        console.log(this.formdata);
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        console.group("SCU");
-        console.log("this.state", this.state);
-        console.log("nextState", nextState);
-        console.groupEnd();
-        return true;
     }
 
     render() {
@@ -154,9 +143,9 @@ class FormContainer extends Component {
             <Form schema={schema}
                     uiSchema={uiSchema}
                     liveValidate={false}
-                    validate={this.validate}
-                    FieldTemplate={this.state.template}
-                    /* onChange={this.onChange} */
+                    /* validate={this.validate} */
+                    FieldTemplate={Wrapper(DefaultFieldTemplate)(this.state.conditionalSchema)}
+                    onChange={this.onChange}
                     formData={this.formdata}
                     onSubmit={this.onSubmit} />
         )
