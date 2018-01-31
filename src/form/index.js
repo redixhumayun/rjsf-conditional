@@ -138,11 +138,11 @@ class FormContainer extends Component {
     }
 
     render() {
-        console.log("Rendering again");
         return (
             <Form schema={schema}
                     uiSchema={uiSchema}
                     liveValidate={false}
+                    fields={this.fields}
                     /* validate={this.validate} */
                     FieldTemplate={Wrapper(DefaultFieldTemplate)(this.state.conditionalSchema)}
                     onChange={this.onChange}

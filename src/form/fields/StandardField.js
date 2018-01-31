@@ -6,35 +6,42 @@ class StandardField extends Component {
         super(props);
         this.onChange = this.onChange.bind(this);
         this.state = {
-            value: ''
+            value: '', 
+            autofocus: false
         }
     }
 
     onChange(event) {
-        console.log("StandardField", event.target.value);
         this.props.onChange(event.target.value);
         this.setState({
             value: event.target.value
         });
     }
 
-    componentWillMount() {
-        this.setState({
-            value: this.props.newFormData
-        })
-    }
-
     render() {
+        console.log("Render");
         return (
             <div>
-                <input type="string" onChange={this.onChange} value={this.state.value} />
+                <input type="string" onChange={this.onChange} value={this.state.value} autoFocus={this.state.autofocus} />
             </div>
         )
     }
 
-    // componentDidMount() {
-    //     this.onChange({ target: { value: this.props.newFormData } });
-    // }
+    componentWillMount() {
+        console.log(this.props);
+        if(this.props.formData) {
+            this.setState({
+                value: this.props.formData
+            })
+        }
+    }
+
+    componentDidMount() {
+        console.log(this.props.name, this.props.autoF);
+        this.setState({
+            autofocus: this.props.autoF
+        })
+    }
 }
 
 export default StandardField;
