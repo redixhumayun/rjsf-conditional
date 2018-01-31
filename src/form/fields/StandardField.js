@@ -31,10 +31,6 @@ class StandardField extends Component {
             </div>
         )
     }
-
-    // componentDidMount() {
-    //     this.onChange({ target: { value: this.props.newFormData } });
-    // }
 }
 
 export default StandardField;

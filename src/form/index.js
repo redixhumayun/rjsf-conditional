@@ -29,6 +29,14 @@ const schema = {
         fireFighterRank: {
             type: "string", 
             title: "What is your fire fighter rank?"
+        }, 
+        policeMan: {
+            type: "string", 
+            title: "Are you a policeman?"
+        }, 
+        policeManRank: {
+            type: "string", 
+            title: "What is your police man rank? "
         }
     }
 }
@@ -48,6 +56,12 @@ const uiSchema = {
     }, 
     fireFighterRank: {
         "ui:field": "StandardField"
+    }, 
+    policeMan: {
+        "ui:field": "StandardField"
+    }, 
+    policeManRank: {
+        "ui:field": "StandardField"
     }
 }
 
@@ -57,6 +71,12 @@ const conditionalSchema = {
         dependents: [
             "fireFighterID", 
             "fireFighterRank"
+        ]
+    }, 
+    "policeMan": {
+        expression: "policeMan === 'Yes'",
+        dependents: [
+            "policeManRank", 
         ]
     }
 }   
@@ -72,9 +92,7 @@ const Wrapper = (Comp) => (args) => (fun) => {
 
         render() {
             return <Comp {...this.props} {...args} 
-                    callFun={(arg) => { 
-                        fun(args.formData)
-                     }} />
+                    callFun={(arg) => fun()} />
         }
     }
 }
@@ -97,7 +115,6 @@ class FormContainer extends Component {
     }
 
     handleCallback(e) {
-        console.log(this.formdata);
         this.forceUpdate();
     }
 
@@ -126,8 +143,6 @@ class FormContainer extends Component {
     }
 
     render() {
-        console.log("Rendering again");
-        console.log(this.formdata);
         return (
             <Form schema={schema}
                     uiSchema={uiSchema}

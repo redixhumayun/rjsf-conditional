@@ -3,6 +3,7 @@ import * as evaluate from 'static-eval';
 import { parse } from 'esprima';
 
 let hiddenElements = [];
+let firstRender = true; //to make sure it doesn't re-render the very first time
 
 class DefaultFieldTemplate extends Component {
     constructor(props) {
@@ -11,10 +12,8 @@ class DefaultFieldTemplate extends Component {
 
     render() {
         const { id, label, description, errors, children, conditionalSchema } = this.props;
-        // console.log("DFT", this.props.children.props.formData, id);
         let ownHidden = 'block';
-        console.log(hiddenElements);
-        console.log(id);
+        console.log("hiddenElements", hiddenElements);
         if(hiddenElements.length > 0) {
             hiddenElements.map(h => {
                 let temp_id = id.replace('root_', '');
@@ -24,6 +23,8 @@ class DefaultFieldTemplate extends Component {
             })
         }
         if(id === 'root') {
+            let prevLength = hiddenElements.length;
+            console.log("prevLength", prevLength);
             hiddenElements = [];            
             for(const [field, conObj] of Object.entries(conditionalSchema)) {
                 let expression = parse(conObj.expression).body[0].expression;
@@ -34,16 +35,18 @@ class DefaultFieldTemplate extends Component {
                     conObj.dependents.map(c => hiddenElements.push(c));
                 }
             }
-            if(hiddenElements.length === 0) {
-                setTimeout(() => {
-                    this.props.callFun("Re-render");
-                }, 1);
+            if(hiddenElements.length !== prevLength) {
+                if(firstRender) {
+                    firstRender = false;
+                } else {
+                    console.log("Re-rendering");
+                    console.log(hiddenElements.length, prevLength)
+                    setTimeout(() => {
+                        this.props.callFun("Re-render");
+                    }, 1);
+                }
             }
         }
-        // for(const [field, valObj] of Object.entries(conditionalSchema)) {
-        //     valObj.dependents.filter(d => d === id)
-        //                      .map(e => valObj.result ? ownHidden = 'block' : ownHidden = 'none');
-        // }
 
         return (
             <div style={{ display: ownHidden }}>
