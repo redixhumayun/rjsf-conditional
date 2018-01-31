@@ -52,20 +52,19 @@ const uiSchema = {
 }
 
 const conditionalSchema = {
-    "root_fireFighter": {
-        expression: "root_fireFighter === 'Yes'", 
+    "fireFighter": {
+        expression: "fireFighter === 'Yes'", 
         dependents: [
-            "root_fireFighterID", 
-            "root_fireFighterRank"
-        ], 
-        result: false
+            "fireFighterID", 
+            "fireFighterRank"
+        ]
     }
 }   
 
-const Wrapper = (Comp) => (conditionalSchema, formData) => {
+const Wrapper = (Comp) => (args) => {
     return class extends Component {
         render() {
-            return <Comp {...this.props} conditionalSchema={conditionalSchema} newFormData={formData} />
+            return <Comp {...this.props} {...args} />
         }
     }
 }
@@ -73,51 +72,23 @@ const Wrapper = (Comp) => (conditionalSchema, formData) => {
 class FormContainer extends Component {
     constructor(props) {
         super(props);
-        this.validate = this.validate.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.onChange = this.onChange.bind(this);
-        this.conditionalValidation = this.conditionalValidation.bind(this);
         this.formdata = {};
-        // this.template = Wrapper(DefaultFieldTemplate)(conditionalSchema)
-        
-        this.state = {
-            conditionalSchema: conditionalSchema,
-        }
+        this.conditionalSchema = conditionalSchema;
         this.fields = {
             StandardField: StandardField
         };
     }
 
     conditionalValidation(formData) {
-        const { conditionalSchema } = this.state;
         let payload = {};
-        for(const [field, valObj] of Object.entries(conditionalSchema)) {
+        for(const [field, valObj] of Object.entries(this.conditionalSchema)) {
             let temp = field.replace("root_", "");
             let expression = parse(valObj.expression).body[0].expression;
             let lookup = 'formData.' + temp;
             let payload = {};
             payload[field] = eval(lookup);
-            valObj.result = evaluate(expression, payload);
         }
-        return conditionalSchema;
-    }
-
-    validate(formData, errors) {
-        const { conditionalSchema } = this.state;
-        let payload = {};
-        for(const [field, valObj] of Object.entries(conditionalSchema)) {
-            let temp = field.replace("root_", "");
-            let expression = parse(valObj.expression).body[0].expression;
-            let lookup = 'formData.' + temp;
-            let payload = {};
-            payload[field] = eval(lookup);
-            valObj.result = evaluate(expression, payload);
-        }
-        this.setState({
-            conditionalSchema: conditionalSchema, 
-        });
-        // this.template = Wrapper(DefaultFieldTemplate)(conditionalSchema);
-        return errors;
     }
 
     onChange({formData}) {
@@ -126,10 +97,6 @@ class FormContainer extends Component {
             this.formdata[key] = formData[key];
         })
         this.formdata['random'] = new Date().getTime();
-        this.setState({
-            conditionalSchema
-        });
-        // this.template = Wrapper(DefaultFieldTemplate)(conditionalSchema);
         console.log(this.formdata);
     }
 
@@ -143,9 +110,8 @@ class FormContainer extends Component {
             <Form schema={schema}
                     uiSchema={uiSchema}
                     liveValidate={false}
-                    /* validate={this.validate} */
-                    FieldTemplate={Wrapper(DefaultFieldTemplate)(this.state.conditionalSchema)}
-                    onChange={this.onChange}
+                    FieldTemplate={Wrapper(DefaultFieldTemplate)({conditionalSchema: this.conditionalSchema, 
+                                                                    formData: this.formdata})}
                     formData={this.formdata}
                     onSubmit={this.onSubmit} />
         )
