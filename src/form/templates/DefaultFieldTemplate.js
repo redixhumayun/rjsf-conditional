@@ -20,7 +20,6 @@ class DefaultFieldTemplate extends Component {
         //         childClone = React.cloneElement(children, { newFormData: newFormData[tempID] });
         //     }
         // }
-        console.log(id, ownHidden);
 
         return (
             <div style={{ display: ownHidden }}>

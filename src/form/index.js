@@ -29,18 +29,6 @@ const schema = {
         fireFighterRank: {
             type: "string", 
             title: "What is your fire fighter rank?"
-        },
-        policeMan: {
-            type: "string", 
-            title: "Police man?"
-        }, 
-        policeManID: {
-            type: "number", 
-            title: "What is your police ID?"
-        }, 
-        policeManRank: {
-            type: "string", 
-            title: "What is your police man rank?"
         }
     }
 }
@@ -59,15 +47,6 @@ const uiSchema = {
         "ui:field": "StandardField"
     }, 
     fireFighterRank: {
-        "ui:field": "StandardField"
-    },
-    policeMan: {
-        "ui:field": "StandardField"
-    },
-    policeManID: {
-        "ui:field": "StandardField"
-    },
-    policeManRank: {
         "ui:field": "StandardField"
     }
 }
@@ -105,14 +84,21 @@ class FormContainer extends Component {
         this.validate = this.validate.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.formdata = {
+            firstName: 'Zaid', 
+            lastName: '', 
+            fireFighter: '', 
+            fireFighterID: '', 
+            fireFighterRank: '', 
+            random: ''
+        };
         this.state = {
-            validationSchema: validationSchema, 
-            formdata: null
+            validationSchema: validationSchema,
+            template: Wrapper(DefaultFieldTemplate)(validationSchema)
         }
         this.fields = {
             StandardField: StandardField
         };
-        this.template = Wrapper(DefaultFieldTemplate)(this.state.validationSchema, this.state.formdata);
     }
 
     validate(formData, errors) {
@@ -127,33 +113,51 @@ class FormContainer extends Component {
             valObj.result = evaluate(expression, payload);
         }
         this.setState({
-            validationSchema: validationSchema
+            validationSchema: validationSchema, 
+            template: Wrapper(DefaultFieldTemplate)(validationSchema)
         });
         return errors;
     }
 
     onChange(form) {
         console.log("onChange", form.formData);
-        this.state.formdata = form.formData;
+        // this.formdata = form.formData;
     }
 
     onSubmit({formData}) {
-        // this.state.formdata = formData;
-        this.setState({
-            formdata: formData
-        })
-        console.log("onSubmit formData", formData);
-        this.template = Wrapper(DefaultFieldTemplate)(this.state.validationSchema, formData);
+        console.log("onSubmit", formData);
+        // this.formdata['fireFighter'] = formData['fireFighter'];
+        Object.keys(this.formdata).map(key => {
+            if(formData[key] != "") {
+                let value = formData[key];
+                let newValue = new String(value);
+                console.log(newValue);
+                this.formdata[key] = newValue.toString();
+            }
+        });
+        this.formdata['random'] = new Date().getTime();
+        // this.formdata = {...formData};
+        console.log(this.formdata);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        console.group("SCU");
+        console.log("this.state", this.state);
+        console.log("nextState", nextState);
+        console.groupEnd();
+        return true;
     }
 
     render() {
+        console.log("Rendering again");
         return (
             <Form schema={schema}
                     uiSchema={uiSchema}
-                    fields={this.fields}
-                    FieldTemplate={this.template}
                     liveValidate={false}
                     validate={this.validate}
+                    FieldTemplate={this.state.template}
+                    /* onChange={this.onChange} */
+                    formData={this.formdata}
                     onSubmit={this.onSubmit} />
         )
     }
