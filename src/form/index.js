@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import Form from 'react-jsonschema-form';
-import StandardField from './fields/StandardField';
-import DefaultFieldTemplate from './templates/DefaultFieldTemplate';
 import * as evaluate from 'static-eval';
 import { parse } from 'esprima';
+
+import StandardField from './fields/StandardField';
+import DefaultFieldTemplate from './templates/DefaultFieldTemplate';
+import traverse from './traverse';
 
 const schema = {
     title: "My Form",
@@ -37,6 +39,20 @@ const schema = {
         policeManRank: {
             type: "string", 
             title: "What is your police man rank? "
+        }, 
+        nestedObject: {
+            type: "object", 
+            title: "This is a nested object", 
+            properties: {
+                nestedObject1: {
+                    type: "boolean", 
+                    title: "Check this to see the next option"
+                }, 
+                nestedObject2: {
+                    type: "string", 
+                    title: "This is the next option"
+                }
+            }
         }
     }
 }
@@ -78,6 +94,12 @@ const conditionalSchema = {
         dependents: [
             "policeManRank", 
         ]
+    }, 
+    "nestedObject_nestedObject1": {
+        expression: "nestedObject_nestedObject1 === true", 
+        dependents: [
+            "nestedObject_nestedObject2"
+        ]
     }
 }   
 
@@ -85,14 +107,11 @@ const Wrapper = (Comp) => (args) => (fun) => {
     return class extends Component {
         constructor(props) {
             super(props);
-            this.state = {
-                fd: props.formData
-            }
         }
 
         render() {
             return <Comp {...this.props} {...args} 
-                    callFun={(arg) => fun()} />
+                    callFun={() => fun()} />
         }
     }
 }
@@ -130,7 +149,7 @@ class FormContainer extends Component {
     }
 
     onChange({formData}) {
-        let conditionalSchema = this.conditionalValidation(formData);
+        this.conditionalValidation(formData);
         Object.keys(formData).map(key => {
             this.formdata[key] = formData[key];
         })
@@ -139,6 +158,9 @@ class FormContainer extends Component {
     }
 
     onSubmit({formData}) {
+        traverse(formData).reduce(function(acc) {
+            console.log(this);
+        }) 
         console.log("onSubmit", formData);
     }
 

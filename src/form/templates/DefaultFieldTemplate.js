@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import * as evaluate from 'static-eval';
 import { parse } from 'esprima';
 
-import TextField from '../widgets/TextField';
+import traverse from '../traverse';
 
 let hiddenElements = [];
 let firstRender = true; //to make sure it doesn't re-render the very first time
@@ -13,10 +13,10 @@ class DefaultFieldTemplate extends Component {
     }
 
     render() {
-        console.log(this.props);
         const { id, label, description, errors, children, conditionalSchema, schema } = this.props;
-        let ownHidden = 'block';
         console.log("hiddenElements", hiddenElements);
+        console.log("id", id);
+        let ownHidden = 'block';
         if(hiddenElements.length > 0) {
             hiddenElements.map(h => {
                 let temp_id = id.replace('root_', '');
@@ -25,31 +25,63 @@ class DefaultFieldTemplate extends Component {
                 }
             })
         }
+        let prevLength = hiddenElements.length;
         if(id === 'root') {
-            let prevLength = hiddenElements.length;
-            console.log("prevLength", prevLength);
-            hiddenElements = [];            
-            for(const [field, conObj] of Object.entries(conditionalSchema)) {
-                let expression = parse(conObj.expression).body[0].expression;
-                let lookup = 'this.props.children.props.formData.' + field;
-                let payload = {};
-                payload[field] = eval(lookup);
-                if(!evaluate(expression, payload)) {
-                    conObj.dependents.map(c => hiddenElements.push(c));
+            hiddenElements = [];
+            const { formData } = this.props.children.props;
+            console.log(formData);
+            traverse(formData).reduce(function(acc) {
+                if(this.isLeaf) {
+                    let field = this.path.join('_');
+                    console.log("field", field);
+                    let expression = conditionalSchema[field] ? conditionalSchema[field].expression : null
+                    if(expression) {
+                        let ast = parse(expression).body[0].expression;
+                        let lookup = 'formData.' + field.replace(/_/g, '.');
+                        let payload = {};
+                        payload[field] = eval(lookup);
+                        console.log("lookup", lookup);
+                        console.log("payload", payload);
+                        console.log("result", evaluate(ast, payload));
+                        if(!evaluate(ast, payload)) {
+                            conditionalSchema[field].dependents.map(d => hiddenElements.push(d));
+                        }
+                    }
                 }
-            }
-            if(hiddenElements.length !== prevLength) {
-                if(firstRender) {
-                    firstRender = false;
-                } else {
-                    console.log("Re-rendering");
-                    console.log(hiddenElements.length, prevLength)
-                    setTimeout(() => {
-                        this.props.callFun("Re-render");
-                    }, 1);
-                }
-            }
+            })
         }
+        if(prevLength !== hiddenElements.length) {
+            if(firstRender) {
+                firstRender = false;
+            } else [
+                setTimeout(() => {
+                    this.props.callFun();
+                }, 1)
+            ]
+        }
+        // if(id === 'root') {
+        //     let prevLength = hiddenElements.length;
+        //     hiddenElements = [];            
+        //     for(const [field, conObj] of Object.entries(conditionalSchema)) {
+        //         let expression = parse(conObj.expression).body[0].expression;
+        //         let lookup = 'this.props.children.props.formData.' + field;
+        //         let payload = {};
+        //         payload[field] = eval(lookup);
+        //         if(!evaluate(expression, payload)) {
+        //             conObj.dependents.map(c => hiddenElements.push(c));
+        //         }
+        //     }
+        //     console.log("Hidden elements", hiddenElements);
+        //     if(hiddenElements.length !== prevLength) {
+        //         if(firstRender) {
+        //             firstRender = false;
+        //         } else {
+        //             setTimeout(() => {
+        //                 this.props.callFun();
+        //             }, 1);
+        //         }
+        //     }
+        // }
 
         return (
             <div style={{ display: ownHidden }}>
